@@ -80,15 +80,15 @@ typedef enum
 #endif
 
 #if defined (AT_TAOBAO_F425)
-#define LED2_PIN                         GPIO_PINS_2
+#define LED2_PIN                         GPIO_PINS_0
 #define LED2_GPIO                        GPIOA
 #define LED2_GPIO_CRM_CLK                CRM_GPIOA_PERIPH_CLOCK
 
-#define LED3_PIN                         GPIO_PINS_3
+#define LED3_PIN                         GPIO_PINS_1
 #define LED3_GPIO                        GPIOA
 #define LED3_GPIO_CRM_CLK                CRM_GPIOA_PERIPH_CLOCK
 
-#define LED4_PIN                         GPIO_PINS_5
+#define LED4_PIN                         GPIO_PINS_2
 #define LED4_GPIO                        GPIOA
 #define LED4_GPIO_CRM_CLK                CRM_GPIOA_PERIPH_CLOCK
 #endif
