@@ -50,35 +50,29 @@ extern "C" {
 #define USBD_HIDIAP_IN_EPT                  0x81
 #define USBD_HIDIAP_OUT_EPT                 0x01
 
-#define USBD_HIDIAP_IN_MAXPACKET_SIZE       0x40
-#define USBD_HIDIAP_OUT_MAXPACKET_SIZE      0x40
+#define USBD_HIDIAP_IN_MAXPACKET_SIZE       33
+#define USBD_HIDIAP_OUT_MAXPACKET_SIZE      33
 
 #define FLASH_SIZE_REG()                 ((*(uint32_t *)0x1FFFF7E0) & 0xFFFF) /*Get Flash size*/
 #define KB_TO_B(kb)                      ((kb) << 10)
 
 #define SECTOR_SIZE_1K                   0x400
-#define SECTOR_SIZE_2K                   0x800
-#define SECTOR_SIZE_4K                   0x1000
 
 /**
   * @brief iap command
   */
-#define IAP_CMD_IDLE                     0x5AA0
-#define IAP_CMD_START                    0x5AA1
-#define IAP_CMD_ADDR                     0x5AA2
-#define IAP_CMD_DATA                     0x5AA3
-#define IAP_CMD_FINISH                   0x5AA4
-#define IAP_CMD_CRC                      0x5AA5
-#define IAP_CMD_JMP                      0x5AA6
-#define IAP_CMD_GET                      0x5AA7
+#define IAP_CMD_INFO      0x01
+#define IAP_CMD_FW_START  0x02
+#define IAP_CMD_START_APP 0x03
 
 #define HID_IAP_BUFFER_LEN               1024
 #define IAP_UPGRADE_COMPLETE_FLAG        0x41544B38
 #define CONVERT_ENDIAN(dwValue)          ((dwValue >> 24) | ((dwValue >> 8) & 0xFF00) | \
                                          ((dwValue << 8) & 0xFF0000) | (dwValue << 24) )
 
-#define IAP_ACK                          0xFF00
-#define IAP_NACK                         0x00FF
+#define IAP_FAIL                         0x00
+#define IAP_ERASE_OK                     0x01
+#define IAP_CRC_OK                       0x02
 
 typedef enum
 {
@@ -89,12 +83,7 @@ typedef enum
 
 typedef enum
 {
-  IAP_STS_IDLE,
-  IAP_STS_START,
-  IAP_STS_ADDR,
-  IAP_STS_DATA,
-  IAP_STS_FINISH,
-  IAP_STS_CRC,
+  IAP_STS_FW_UPDATE,
   IAP_STS_JMP_WAIT,
   IAP_STS_JMP,
 }iap_machine_state_type;
@@ -111,7 +100,8 @@ typedef struct
 
   uint32_t app_address;
   uint32_t iap_address;
-  uint32_t flag_address;
+  uint32_t flash_flag_address;
+  uint32_t ram_flag_address;
 
   uint32_t flash_start_address;
   uint32_t flash_end_address;
@@ -127,6 +117,10 @@ typedef struct
   uint32_t alt_setting;
   uint32_t hid_state;
   uint8_t hid_set_report[64];
+
+  uint8_t fw_crc;
+  uint16_t fw_pack_count;
+  uint16_t recv_pack_count;
 
   iap_machine_state_type state;
 }iap_info_type;

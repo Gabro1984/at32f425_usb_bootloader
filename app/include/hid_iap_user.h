@@ -40,7 +40,16 @@ extern "C" {
   * @{
   */
 
-#define FLASH_APP_ADDRESS                0x08005000
+#define FLASH_UPGRADE_FLAG_ADDRESS      0x08004C00
+#define APP_VERSION_HIGH_ADDRESS        0x08004C04
+#define APP_VERSION_LOW_ADDRESS         0x08004C08
+#define FLASH_APP_ADDRESS               0x08005000
+#define RAM_UPGRADE_FLAG_ADDRESS        0x20004FFC
+#define IAP_PACKET_LENGTH  32
+#define INFO_CMD_RESPONSE_LENGTH 18
+
+#define SIGN_CMD 0x01
+#define SIGN_FW_DATA 0x02
 
 void iap_init(void);
 iap_result_type iap_get_upgrade_flag(void);
