@@ -49,7 +49,7 @@ extern "C" {
 #define HIDIAP_BCD_NUM                   0x0110
 
 #define USBD_HIDIAP_VENDOR_ID            0x2E3C
-#define USBD_HIDIAP_PRODUCT_ID           0xAF01
+#define USBD_HIDIAP_PRODUCT_ID           0x5754
 
 #define USBD_HIDIAP_CONFIG_DESC_SIZE     41
 #define USBD_HIDIAP_SIZ_REPORT_DESC      32
