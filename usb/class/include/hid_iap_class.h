@@ -118,7 +118,7 @@ typedef struct
   uint32_t hid_state;
   uint8_t hid_set_report[64];
 
-  uint8_t fw_crc;
+  uint32_t fw_crc32;
   uint16_t fw_pack_count;
   uint16_t recv_pack_count;
 

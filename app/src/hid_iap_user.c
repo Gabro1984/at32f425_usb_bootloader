@@ -123,11 +123,22 @@ static void iap_erase_sector(uint32_t address)
   * @param  block_count: number of iap data blocks
   * @retval crc value
   */
-static uint32_t crc_cal(uint32_t addr, uint16_t block_count)
+static uint32_t crc32_cal(uint32_t addr, uint16_t pack_count)
 {
-    //TODO
+    uint32_t *paddr = (uint32_t *)addr;
+    uint32_t wlen = pack_count * IAP_PACKET_LENGTH / sizeof(uint32_t);
+    uint32_t value, i_index = 0;
+    crm_periph_clock_enable(CRM_CRC_PERIPH_CLOCK, TRUE);
+    crc_data_reset();
 
-  return crc_data_get();
+    for(i_index = 0; i_index < wlen; i_index ++)
+    {
+	value = *paddr;
+	crc_one_word_calculate(CONVERT_ENDIAN(value));
+
+	paddr ++;
+    }
+    return crc_data_get();
 }
 
 /**
@@ -148,7 +159,7 @@ void iap_init(void)
   iap_info.ram_flag_address = RAM_UPGRADE_FLAG_ADDRESS;
 
   iap_info.fifo_length = 0;
-  iap_info.fw_crc = 0;
+  iap_info.fw_crc32 = 0;
   iap_info.fw_pack_count = 0;
   iap_info.recv_pack_count = 0;
 }
@@ -247,7 +258,8 @@ static iap_result_type iap_start(uint8_t *pdata)
 
     iap_init();
     iap_info.fw_pack_count = (pdata[2] << 8 | pdata[3]);
-    iap_info.fw_crc = pdata[4];
+    iap_info.fw_crc32 = (pdata[4] << 24) | (pdata[5] << 16) |
+	(pdata[6] << 8) | pdata[7];
 
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_ERASE_OK);
     return IAP_SUCCESS;
@@ -260,11 +272,11 @@ static iap_result_type iap_start(uint8_t *pdata)
   */
 static void iap_finish()
 {
-    uint32_t crc_value;
+    uint32_t crc32_value;
 
-    crc_value = crc_cal(iap_info.app_address, iap_info.fw_pack_count);
+    crc32_value = crc32_cal(iap_info.app_address, iap_info.fw_pack_count);
 
-    if (crc_value != iap_info.fw_crc) {
+    if (crc32_value != iap_info.fw_crc32) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
 	return;
     }
