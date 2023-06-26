@@ -39,8 +39,14 @@ extern "C" {
   *
   */
 #if !defined  HEXT_VALUE
-#define HEXT_VALUE               ((uint32_t)8000000) /*!< value of the high speed exernal crystal in hz */
-#endif
+
+#if defined (AT_TAOBAO_F425)
+#define HEXT_VALUE               ((uint32_t)12000000) /*!< high speed exernal crystal in hz */
+#else
+#define HEXT_VALUE               ((uint32_t)8000000)
+#endif //  AT_TAOBAO_F425
+
+#endif // HEXT_VALUE
 
 /**
   * @brief in the following line adjust the high speed exernal crystal (hext) startup

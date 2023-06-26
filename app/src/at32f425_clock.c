@@ -59,7 +59,11 @@ void system_clock_config(void)
   }
 
   /* config pll clock resource */
+  #if defined (AT_TAOBAO_F425)
+  crm_pll_config(CRM_PLL_SOURCE_HEXT, CRM_PLL_MULT_6);
+  #else
   crm_pll_config(CRM_PLL_SOURCE_HEXT, CRM_PLL_MULT_12);
+  #endif
 
   /* enable pll */
   crm_clock_source_enable(CRM_CLOCK_SOURCE_PLL, TRUE);
