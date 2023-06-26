@@ -83,6 +83,7 @@ typedef enum
 
 typedef enum
 {
+  IAP_STS_IDLE,
   IAP_STS_FW_UPDATE,
   IAP_STS_JMP_WAIT,
   IAP_STS_JMP,

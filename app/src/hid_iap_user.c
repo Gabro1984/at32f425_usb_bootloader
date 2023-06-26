@@ -158,6 +158,7 @@ void iap_init(void)
   iap_info.flash_flag_address = FLASH_UPGRADE_FLAG_ADDRESS;
   iap_info.ram_flag_address = RAM_UPGRADE_FLAG_ADDRESS;
 
+  iap_info.state = IAP_STS_IDLE;
   iap_info.fifo_length = 0;
   iap_info.fw_crc32 = 0;
   iap_info.fw_pack_count = 0;
@@ -370,7 +371,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
   iap_info.respond_flag = 0;
   iap_sign = pdata[0];
 
-  if(iap_sign != SIGN_CMD || iap_sign != SIGN_FW_DATA)
+  if(iap_sign != SIGN_CMD && iap_sign != SIGN_FW_DATA)
   {
       return IAP_FAILED;
   }
