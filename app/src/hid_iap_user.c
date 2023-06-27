@@ -183,9 +183,8 @@ static void iap_respond(uint8_t *res_buf, uint8_t iap_cmd, uint8_t result)
     if (iap_cmd == IAP_CMD_INFO) {
 	fill_pos += INFO_CMD_RESPONSE_LENGTH;
     }
-    else {
-	if (iap_cmd != IAP_CMD_START_APP)
-	    fill_pos += sizeof(result);
+    else if  (iap_cmd == IAP_CMD_FW_START) {
+	fill_pos += sizeof(result) + sizeof(uint32_t); //result + crc32
     }
 
   while (fill_pos != IAP_PACKET_LENGTH) {
@@ -276,6 +275,10 @@ static void iap_finish()
     uint32_t crc32_value;
 
     crc32_value = crc32_cal(iap_info.app_address, iap_info.fw_pack_count);
+    iap_info.iap_tx[2] = (uint8_t)((crc32_value >> 24) & 0xFF);
+    iap_info.iap_tx[3] = (uint8_t)((crc32_value >> 16) & 0xFF);
+    iap_info.iap_tx[4] = (uint8_t)((crc32_value >> 8) & 0xFF);
+    iap_info.iap_tx[5] = (uint8_t)((crc32_value) & 0xFF);
 
     if (crc32_value != iap_info.fw_crc32) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
