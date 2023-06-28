@@ -63,6 +63,9 @@ extern "C" {
 
 #define HIDIAP_BINTERVAL_TIME                0x01
 
+#define IAP_IN_PACKET_LENGTH   32
+#define IAP_OUT_PACKET_LENGTH  64
+
 #define         MCU_ID1                   (0x1FFFF7E8)
 #define         MCU_ID2                   (0x1FFFF7EC)
 #define         MCU_ID3                   (0x1FFFF7F0)
@@ -89,4 +92,3 @@ extern usbd_desc_handler hid_iap_desc_handler;
 #endif
 
 #endif
-

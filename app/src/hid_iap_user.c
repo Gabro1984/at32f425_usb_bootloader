@@ -126,7 +126,7 @@ static void iap_erase_sector(uint32_t address)
 static uint32_t crc32_cal(uint32_t addr, uint16_t pack_count)
 {
     uint32_t *paddr = (uint32_t *)addr;
-    uint32_t wlen = pack_count * IAP_PACKET_LENGTH / sizeof(uint32_t);
+    uint32_t wlen = pack_count * IAP_OUT_PACKET_LENGTH / sizeof(uint32_t);
     uint32_t value, i_index = 0;
     crm_periph_clock_enable(CRM_CRC_PERIPH_CLOCK, TRUE);
     crc_data_reset();
@@ -187,7 +187,7 @@ static void iap_respond(uint8_t *res_buf, uint8_t iap_cmd, uint8_t result)
 	fill_pos += sizeof(result) + sizeof(uint32_t); //result + crc32
     }
 
-  while (fill_pos != IAP_PACKET_LENGTH) {
+  while (fill_pos != IAP_IN_PACKET_LENGTH) {
       res_buf[fill_pos] = 0xFF;
       fill_pos++;
   }
@@ -367,7 +367,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
   uint16_t iap_cmd;
   uint8_t iap_sign;
 
-  if(len != IAP_PACKET_LENGTH + 1)
+  if(len != IAP_OUT_PACKET_LENGTH)
   {
       return IAP_FAILED;
   }
@@ -405,7 +405,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 
   if(iap_info.respond_flag)
   {
-    usb_iap_class_send_report(udev, iap_info.iap_tx, IAP_PACKET_LENGTH + 1);
+    usb_iap_class_send_report(udev, iap_info.iap_tx, IAP_IN_PACKET_LENGTH);
   }
 
   return status;
