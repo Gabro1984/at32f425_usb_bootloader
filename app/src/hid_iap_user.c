@@ -369,7 +369,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 
   if(len != IAP_OUT_PACKET_LENGTH)
   {
-      return IAP_FAILED;
+      //return IAP_FAILED;
   }
   iap_info.respond_flag = 0;
   iap_sign = pdata[0];
