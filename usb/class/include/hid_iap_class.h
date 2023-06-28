@@ -50,8 +50,8 @@ extern "C" {
 #define USBD_HIDIAP_IN_EPT                  0x81
 #define USBD_HIDIAP_OUT_EPT                 0x01
 
-#define USBD_HIDIAP_IN_MAXPACKET_SIZE       33
-#define USBD_HIDIAP_OUT_MAXPACKET_SIZE      33
+#define USBD_HIDIAP_IN_MAXPACKET_SIZE       0x40
+#define USBD_HIDIAP_OUT_MAXPACKET_SIZE      0x40
 
 #define FLASH_SIZE_REG()                 ((*(uint32_t *)0x1FFFF7E0) & 0xFFFF) /*Get Flash size*/
 #define KB_TO_B(kb)                      ((kb) << 10)
