@@ -91,8 +91,8 @@ int main(void)
   while(1)
   {
     iap_loop();
-    //at32_led_toggle(LED3);
-    delay_ms(200);
+    at32_led_toggle(LED3);
+    delay_ms(500);
   }
 }
 

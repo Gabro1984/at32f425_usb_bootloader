@@ -174,11 +174,11 @@ ALIGNED_HEAD uint8_t g_usbd_hidiap_report[USBD_HIDIAP_SIZ_REPORT_DESC] ALIGNED_T
   0x15, 0x00,                            /*     LOGICAL_MINIMUM (0)        */
   0x25, 0xFF,                            /*     LOGICAL_MAXIMUM (255)        */
   0x75, 0x08,                            /*     REPORT_SIZE (8)            */
-  0x95, 0x40,                            /*     REPORT_COUNT (64)           */
+  0x95, IAP_IN_PACKET_LENGTH,                            /*     REPORT_COUNT (64)           */
 
   0x09, 0x01,
   0x81, 0x02,
-  0x95, 0x40,
+  0x95, IAP_OUT_PACKET_LENGTH,
 
   0x09, 0x01,
   0x91, 0x02,

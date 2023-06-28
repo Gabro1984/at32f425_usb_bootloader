@@ -45,7 +45,6 @@ extern "C" {
 #define APP_VERSION_LOW_ADDRESS         0x08004C08
 #define FLASH_APP_ADDRESS               0x08005000
 #define RAM_UPGRADE_FLAG_ADDRESS        0x20004FFC
-#define IAP_PACKET_LENGTH  32
 #define INFO_CMD_RESPONSE_LENGTH 18
 
 #define SIGN_CMD 0x01
