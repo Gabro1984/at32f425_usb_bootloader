@@ -126,7 +126,7 @@ static void iap_erase_sector(uint32_t address)
 static uint32_t crc32_cal(uint32_t addr, uint16_t pack_count)
 {
     uint32_t *paddr = (uint32_t *)addr;
-    uint32_t wlen = pack_count * IAP_OUT_PACKET_LENGTH / sizeof(uint32_t);
+    uint32_t wlen = pack_count * IAP_DATA_BLOCK_LENGTH / sizeof(uint32_t);
     uint32_t value, i_index = 0;
     crm_periph_clock_enable(CRM_CRC_PERIPH_CLOCK, TRUE);
     crc_data_reset();
@@ -367,10 +367,6 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
   uint16_t iap_cmd;
   uint8_t iap_sign;
 
-  if(len != IAP_OUT_PACKET_LENGTH)
-  {
-      //return IAP_FAILED;
-  }
   iap_info.respond_flag = 0;
   iap_sign = pdata[0];
 
@@ -381,7 +377,9 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 
   if (iap_sign == SIGN_FW_DATA)
   {
-      status = iap_data_write(pdata + 1, len - 1);
+      if(len != IAP_OUT_PACKET_LENGTH) return IAP_FAILED;
+
+      status = iap_data_write(pdata + 4, IAP_DATA_BLOCK_LENGTH);
       return status;
   }
 

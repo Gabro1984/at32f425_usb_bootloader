@@ -65,6 +65,7 @@ extern "C" {
 
 #define IAP_IN_PACKET_LENGTH   64
 #define IAP_OUT_PACKET_LENGTH  64
+#define IAP_DATA_BLOCK_LENGTH  IAP_OUT_PACKET_LENGTH - 4
 
 #define         MCU_ID1                   (0x1FFFF7E8)
 #define         MCU_ID2                   (0x1FFFF7EC)
