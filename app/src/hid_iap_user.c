@@ -93,9 +93,8 @@ iap_result_type iap_get_upgrade_flag(void)
     uint32_t ram_flag = iap_info.ram_flag_address;
     uint32_t flash_flag = iap_info.flash_flag_address;
 
-    if((*((uint32_t *)flash_flag) ||
-	*((uint32_t *)ram_flag))
-       == IAP_UPGRADE_COMPLETE_FLAG)
+    if((*((uint32_t *)flash_flag) == IAP_UPGRADE_COMPLETE_FLAG) ||
+       (*((uint32_t *)ram_flag) == IAP_UPGRADE_COMPLETE_FLAG))
   {
     return IAP_SUCCESS;
   }
@@ -439,7 +438,7 @@ void iap_loop(void)
   if(iap_info.state == IAP_STS_JMP)
   {
   	delay_ms(100);
-    jump_to_app(iap_info.app_address);
+    jump_to_app(FLASH_APP_ADDRESS);
   }
 }
 
