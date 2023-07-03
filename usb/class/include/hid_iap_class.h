@@ -65,7 +65,7 @@ extern "C" {
 #define IAP_CMD_FW_START  0x02
 #define IAP_CMD_START_APP 0x03
 
-#define HID_IAP_BUFFER_LEN               1024
+#define HID_IAP_BUFFER_LEN               8192
 #define IAP_UPGRADE_COMPLETE_FLAG        0x41544B38
 #define CONVERT_ENDIAN(dwValue)          ((dwValue >> 24) | ((dwValue >> 8) & 0xFF00) | \
                                          ((dwValue << 8) & 0xFF0000) | (dwValue << 24) )

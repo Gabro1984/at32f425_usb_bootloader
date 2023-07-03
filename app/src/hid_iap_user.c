@@ -279,7 +279,7 @@ static void iap_finish()
 {
     uint32_t crc32_value;
 
-    crc32_value = crc32_cal(iap_info.app_address, iap_info.fw_pack_count);
+    crc32_value = crc32_cal(FLASH_APP_ADDRESS, iap_info.fw_pack_count);
     iap_info.iap_tx[2] = (uint8_t)((crc32_value >> 24) & 0xFF);
     iap_info.iap_tx[3] = (uint8_t)((crc32_value >> 16) & 0xFF);
     iap_info.iap_tx[4] = (uint8_t)((crc32_value >> 8) & 0xFF);
