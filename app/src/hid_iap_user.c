@@ -255,15 +255,15 @@ static iap_result_type iap_start(uint8_t *pdata)
     }
 
     iap_init();
-    iap_info.fw_pack_count = (pdata[2] << 8 | pdata[3]);
+    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
 
     if (iap_info.fw_pack_count == 0) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
 	return IAP_FAILED;
     }
 
-    iap_info.fw_crc32 = (pdata[4] << 24) | (pdata[5] << 16) |
-	(pdata[6] << 8) | pdata[7];
+    iap_info.fw_crc32 = (pdata[4] ) | (pdata[5] << 8) |
+	(pdata[6] << 16) | (pdata[7] << 24);
 
     iap_info.state = IAP_STS_FW_UPDATE;
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_ERASE_OK);
