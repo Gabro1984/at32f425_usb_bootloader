@@ -110,11 +110,13 @@ iap_result_type iap_get_upgrade_flag(void)
   * @param  none
   * @retval none
   */
-static void iap_erase_sector(uint32_t address)
+static flash_status_type iap_erase_sector(uint32_t address)
 {
+  flash_status_type status;
   flash_unlock();
-  flash_sector_erase(address);
+  status = flash_sector_erase(address);
   flash_lock();
+  return status;
 }
 
 /**
@@ -184,6 +186,7 @@ static void iap_respond(uint8_t *res_buf, uint8_t iap_cmd, uint8_t result)
 	fill_pos += INFO_CMD_RESPONSE_LENGTH;
     }
     else if  (iap_cmd == IAP_CMD_FW_START) {
+	res_buf[2] = result;
 	fill_pos += sizeof(result) + sizeof(uint32_t); //result + crc32
     }
 
@@ -241,15 +244,10 @@ static void iap_inform() {
   */
 static iap_result_type iap_start(uint8_t *pdata)
 {
-    flash_status_type status = FLASH_OPERATE_DONE;
     uint32_t address = iap_info.app_address;
 
-    iap_info.state = IAP_STS_FW_UPDATE;
-
     while (address < iap_info.flash_end_address) {
-	iap_erase_sector(address);
-
-	if (status != FLASH_OPERATE_DONE) {
+	if (iap_erase_sector(address) != FLASH_OPERATE_DONE) {
 	    iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
 	    return IAP_FAILED;
 	}
@@ -257,10 +255,17 @@ static iap_result_type iap_start(uint8_t *pdata)
     }
 
     iap_init();
-    iap_info.fw_pack_count = (pdata[2] << 8 | pdata[3]);
-    iap_info.fw_crc32 = (pdata[4] << 24) | (pdata[5] << 16) |
-	(pdata[6] << 8) | pdata[7];
+    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
 
+    if (iap_info.fw_pack_count == 0) {
+	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
+	return IAP_FAILED;
+    }
+
+    iap_info.fw_crc32 = (pdata[4] ) | (pdata[5] << 8) |
+	(pdata[6] << 16) | (pdata[7] << 24);
+
+    iap_info.state = IAP_STS_FW_UPDATE;
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_ERASE_OK);
     return IAP_SUCCESS;
 }
@@ -281,11 +286,12 @@ static void iap_finish()
     iap_info.iap_tx[5] = (uint8_t)((crc32_value) & 0xFF);
 
     if (crc32_value != iap_info.fw_crc32) {
-	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
+	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_CRC_FAIL);
 	return;
     }
 
     iap_set_upgrade_flag();
+    iap_info.state = IAP_STS_IDLE;
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_CRC_OK);
 }
 
@@ -377,9 +383,10 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 
   if (iap_sign == SIGN_FW_DATA)
   {
-      if(len != IAP_OUT_PACKET_LENGTH) return IAP_FAILED;
+      if(len != IAP_OUT_PACKET_LENGTH)
+	  return IAP_FAILED;
 
-      status = iap_data_write(pdata + 4, IAP_DATA_BLOCK_LENGTH);
+      status = iap_data_write(pdata + 1, IAP_DATA_BLOCK_LENGTH);
       return status;
   }
 
