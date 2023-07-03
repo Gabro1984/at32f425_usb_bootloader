@@ -73,6 +73,7 @@ extern "C" {
 #define IAP_FAIL                         0x00
 #define IAP_ERASE_OK                     0x01
 #define IAP_CRC_OK                       0x02
+#define IAP_CRC_FAIL                     0x03
 
 typedef enum
 {
