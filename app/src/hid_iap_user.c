@@ -243,9 +243,18 @@ static void iap_inform() {
   */
 static iap_result_type iap_start(uint8_t *pdata)
 {
-    uint32_t address = iap_info.app_address;
+    uint32_t address, end_address;
+    uint32_t fw_byte_cnt;
+    uint8_t app_sector_cnt;
 
-    while (address < iap_info.flash_end_address) {
+    iap_init();
+    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
+    address = iap_info.flash_flag_address;
+    fw_byte_cnt = iap_info.fw_pack_count * IAP_DATA_BLOCK_LENGTH;
+    app_sector_cnt = (fw_byte_cnt / SECTOR_SIZE_1K) + 1;
+    end_address = FLASH_APP_ADDRESS + app_sector_cnt*SECTOR_SIZE_1K;
+
+    while (address <= end_address) {
 	if (iap_erase_sector(address) != FLASH_OPERATE_DONE) {
 	    iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
 	    return IAP_FAILED;
@@ -253,8 +262,6 @@ static iap_result_type iap_start(uint8_t *pdata)
 	address += iap_info.sector_size;
     }
 
-    iap_init();
-    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
 
     if (iap_info.fw_pack_count == 0) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
