@@ -93,8 +93,8 @@ iap_result_type iap_get_upgrade_flag(void)
     uint32_t ram_flag = iap_info.ram_flag_address;
     uint32_t flash_flag = iap_info.flash_flag_address;
 
-    if((*((uint32_t *)flash_flag) == IAP_UPGRADE_COMPLETE_FLAG) ||
-       (*((uint32_t *)ram_flag) == IAP_UPGRADE_COMPLETE_FLAG))
+    if((*((uint32_t *)flash_flag) == IAP_UPGRADE_COMPLETE_FLAG) /*||
+       (*((uint32_t *)ram_flag) == IAP_UPGRADE_COMPLETE_FLAG)*/)
   {
     return IAP_SUCCESS;
   }
@@ -286,10 +286,11 @@ static void iap_finish()
     uint32_t crc32_value;
 
     crc32_value = crc32_cal(FLASH_APP_ADDRESS, iap_info.fw_pack_count);
-    iap_info.iap_tx[2] = (uint8_t)((crc32_value >> 24) & 0xFF);
-    iap_info.iap_tx[3] = (uint8_t)((crc32_value >> 16) & 0xFF);
+    iap_info.iap_tx[3] = (uint8_t)((crc32_value) & 0xFF);
     iap_info.iap_tx[4] = (uint8_t)((crc32_value >> 8) & 0xFF);
-    iap_info.iap_tx[5] = (uint8_t)((crc32_value) & 0xFF);
+    iap_info.iap_tx[5] = (uint8_t)((crc32_value >> 16) & 0xFF);
+    iap_info.iap_tx[6] = (uint8_t)((crc32_value >> 24) & 0xFF);
+    iap_info.state = IAP_STS_IDLE;
 
     if (crc32_value != iap_info.fw_crc32) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_CRC_FAIL);
@@ -297,7 +298,6 @@ static void iap_finish()
     }
 
     iap_set_upgrade_flag();
-    iap_info.state = IAP_STS_IDLE;
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_CRC_OK);
 }
 
@@ -393,25 +393,24 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 	  return IAP_FAILED;
 
       status = iap_data_write(pdata + 1, IAP_DATA_BLOCK_LENGTH);
-      return status;
   }
-
-  iap_cmd = pdata[1];
-
-  switch(iap_cmd)
-  {
-  case IAP_CMD_INFO:
-      iap_inform();
-      break;
-  case IAP_CMD_FW_START:
-      status = iap_start(pdata);
-      break;
-  case IAP_CMD_START_APP:
-      iap_jump();
-      break;
-  default:
-      status = IAP_FAILED;
-      break;
+  else {
+      iap_cmd = pdata[1];
+      switch(iap_cmd)
+      {
+      case IAP_CMD_INFO:
+	  iap_inform();
+	  break;
+      case IAP_CMD_FW_START:
+	  status = iap_start(pdata);
+	  break;
+      case IAP_CMD_START_APP:
+	  iap_jump();
+	  break;
+      default:
+	  status = IAP_FAILED;
+	  break;
+      }
   }
 
   if(iap_info.respond_flag)
