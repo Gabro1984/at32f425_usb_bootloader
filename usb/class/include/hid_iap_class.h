@@ -74,6 +74,7 @@ extern "C" {
 #define IAP_ERASE_OK                     0x01
 #define IAP_CRC_OK                       0x02
 #define IAP_CRC_FAIL                     0x03
+#define IAP_TIMEOUT                      0x04
 
 typedef enum
 {
@@ -92,7 +93,6 @@ typedef enum
 
 typedef struct
 {
-
   uint8_t iap_fifo[HID_IAP_BUFFER_LEN];
   uint8_t iap_rx[USBD_HIDIAP_OUT_MAXPACKET_SIZE];
   uint8_t iap_tx[USBD_HIDIAP_IN_MAXPACKET_SIZE];
@@ -123,6 +123,10 @@ typedef struct
   uint32_t fw_crc32;
   uint16_t fw_pack_count;
   uint16_t recv_pack_count;
+
+  usbd_core_type* device;
+  uint8_t timeout;
+  uint8_t tmr_started;
 
   iap_machine_state_type state;
 }iap_info_type;

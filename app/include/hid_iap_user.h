@@ -50,6 +50,8 @@ extern "C" {
 #define SIGN_CMD 0x01
 #define SIGN_FW_DATA 0x02
 
+#define TIMEOUT_TICK_COUNT 7200
+
 void iap_init(void);
 iap_result_type iap_get_upgrade_flag(void);
 void iap_loop(void);

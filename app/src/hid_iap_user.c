@@ -143,6 +143,38 @@ static uint32_t crc32_cal(uint32_t addr, uint16_t pack_count)
 }
 
 /**
+  * @brief  enable upload timeout timer
+  * @param  none
+  * @retval none
+  */
+static void iap_timeout_tmr_enable()
+{
+  tmr_counter_enable(TMR3, TRUE);
+  iap_info.tmr_started = 1;
+}
+
+/**
+  * @brief  disable upload timeout timer
+  * @param  none
+  * @retval none
+  */
+static void iap_timeout_tmr_disable()
+{
+  tmr_counter_enable(TMR3, FALSE);
+  iap_info.tmr_started = 0;
+}
+
+/**
+ * @brief  reset timeout counter
+ * @param  none
+ * @retval none
+ */
+static void iap_reset_timeout()
+{
+    tmr_counter_value_set(TMR3, 1);
+}
+
+/**
   * @brief  iap init
   * @param  none
   * @retval none
@@ -164,6 +196,8 @@ void iap_init(void)
   iap_info.fw_crc32 = 0;
   iap_info.fw_pack_count = 0;
   iap_info.recv_pack_count = 0;
+  iap_info.timeout = 0;
+  iap_info.tmr_started = 0;
 }
 
 /*
@@ -236,19 +270,12 @@ static void iap_inform() {
     iap_info.iap_tx[19] = (uint8_t)((app_ver_low) & 0xFF);
 }
 
-/**
-  * @brief  iap start function
-  * @param  none
-  * @retval none
-  */
-static iap_result_type iap_start(uint8_t *pdata)
+static iap_result_type iap_erase_app()
 {
     uint32_t address, end_address;
     uint32_t fw_byte_cnt;
     uint8_t app_sector_cnt;
 
-    iap_init();
-    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
     address = iap_info.flash_flag_address;
     fw_byte_cnt = iap_info.fw_pack_count * IAP_DATA_BLOCK_LENGTH;
     app_sector_cnt = (fw_byte_cnt / SECTOR_SIZE_1K) + 1;
@@ -261,7 +288,20 @@ static iap_result_type iap_start(uint8_t *pdata)
 	}
 	address += iap_info.sector_size;
     }
+    return IAP_SUCCESS;
+}
 
+/**
+  * @brief  iap start function
+  * @param  none
+  * @retval none
+  */
+static iap_result_type iap_start(uint8_t *pdata)
+{
+    iap_init();
+    iap_info.fw_pack_count = (pdata[2] | pdata[3] << 8);
+    if (iap_erase_app() != IAP_SUCCESS)
+	return IAP_FAILED;
 
     if (iap_info.fw_pack_count == 0) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_FAIL);
@@ -272,6 +312,7 @@ static iap_result_type iap_start(uint8_t *pdata)
 	(pdata[6] << 16) | (pdata[7] << 24);
 
     iap_info.state = IAP_STS_FW_UPDATE;
+    iap_timeout_tmr_enable();
     iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_ERASE_OK);
     return IAP_SUCCESS;
 }
@@ -291,6 +332,7 @@ static void iap_finish()
     iap_info.iap_tx[5] = (uint8_t)((crc32_value >> 16) & 0xFF);
     iap_info.iap_tx[6] = (uint8_t)((crc32_value >> 24) & 0xFF);
     iap_info.state = IAP_STS_IDLE;
+    iap_timeout_tmr_disable();
 
     if (crc32_value != iap_info.fw_crc32) {
 	iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_CRC_FAIL);
@@ -392,6 +434,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
       if(len != IAP_OUT_PACKET_LENGTH)
 	  return IAP_FAILED;
 
+      iap_reset_timeout();
       status = iap_data_write(pdata + 1, IAP_DATA_BLOCK_LENGTH);
   }
   else {
@@ -402,6 +445,7 @@ iap_result_type usbd_hid_iap_process(void *udev, uint8_t *pdata, uint16_t len)
 	  iap_inform();
 	  break;
       case IAP_CMD_FW_START:
+	  iap_info.device = udev;
 	  status = iap_start(pdata);
 	  break;
       case IAP_CMD_START_APP:
@@ -443,9 +487,41 @@ void iap_loop(void)
 {
   if(iap_info.state == IAP_STS_JMP)
   {
-  	delay_ms(100);
-    jump_to_app(FLASH_APP_ADDRESS);
+      delay_ms(100);
+      jump_to_app(FLASH_APP_ADDRESS);
   }
+
+  if (iap_info.timeout)
+  {
+      iap_info.timeout = 0;
+      iap_info.state = IAP_STS_IDLE;
+      iap_erase_app();
+      iap_respond(iap_info.iap_tx, IAP_CMD_FW_START, IAP_TIMEOUT);
+
+      if (iap_info.respond_flag && iap_info.device)
+	  iap_info.respond_flag = 0;
+	  usb_iap_class_send_report(iap_info.device, iap_info.iap_tx, IAP_IN_PACKET_LENGTH);
+  }
+}
+
+
+/**
+  * @brief  tmr3 global interrupt handler.
+  * @param  none
+  * @retval none
+  */
+void TMR3_GLOBAL_IRQHandler(void)
+{
+    if (tmr_flag_get(TMR3, TMR_OVF_FLAG) == SET)
+    {
+	tmr_flag_clear(TMR3, TMR_OVF_FLAG);
+    }
+
+    if (iap_info.tmr_started)
+    {
+	iap_info.timeout = 1;
+	iap_timeout_tmr_disable();
+    }
 }
 
 /**

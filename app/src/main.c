@@ -44,6 +44,7 @@ otg_core_type otg_core_struct;
 void usb_clock48m_select(usb_clk48_s clk_s);
 void usb_gpio_config(void);
 void usb_low_power_wakeup_config(void);
+void timeout_tmr_config (void);
 
 /**
   * @brief  main function.
@@ -80,6 +81,8 @@ int main(void)
 
   /* enable otgfs irq */
   nvic_irq_enable(OTG_IRQ, 0, 0);
+
+  timeout_tmr_config();
 
   /* init usb */
   usbd_init(&otg_core_struct,
@@ -236,6 +239,26 @@ void usb_delay_ms(uint32_t ms)
 void usb_delay_us(uint32_t us)
 {
   delay_us(us);
+}
+
+void timeout_tmr_config()
+{
+  crm_clocks_freq_type crm_clocks_freq = {0};
+
+  crm_periph_clock_enable(CRM_TMR3_PERIPH_CLOCK, TRUE);
+
+  /* get system clock */
+  crm_clocks_freq_get(&crm_clocks_freq);
+
+  /* config timeout period 1 second */
+  tmr_base_init(TMR3, TIMEOUT_TICK_COUNT, crm_clocks_freq.ahb_freq / 10000);
+  tmr_cnt_dir_set(TMR3, TMR_COUNT_UP);
+
+  /* overflow interrupt enable */
+  tmr_interrupt_enable(TMR3, TMR_OVF_INT, TRUE);
+
+	/* enable the tmr3 global interrupt */
+  nvic_irq_enable(TMR3_GLOBAL_IRQn, 1, 0);
 }
 
 /**

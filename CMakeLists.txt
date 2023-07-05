@@ -48,6 +48,7 @@ file(GLOB COMMON_SOURCES_AT32F425
 	"${CMAKE_SOURCE_DIR}/lib/src/at32f425_gpio.c"
 	"${CMAKE_SOURCE_DIR}/lib/src/at32f425_misc.c"
 	"${CMAKE_SOURCE_DIR}/lib/src/at32f425_usb.c"
+	"${CMAKE_SOURCE_DIR}/lib/src/at32f425_tmr.c"
 )
 
 file(GLOB USB_DRIVER_SOURCES
