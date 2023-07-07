@@ -351,45 +351,22 @@ static void iap_finish()
   */
 static iap_result_type iap_data_write(uint8_t *pdata, uint32_t len)
 {
-    uint32_t *pbuf;
-    uint32_t i_index = 0;
-    uint8_t  fw_complete = 0;
+    uint32_t i;
+    uint32_t data_word;
 
     iap_info.recv_pack_count++;
 
-    if(len + iap_info.fifo_length <= HID_IAP_BUFFER_LEN)
-    {
-	for(i_index = 0; i_index < len; i_index++)
-	{
-	    iap_info.iap_fifo[iap_info.fifo_length++] = pdata[i_index];
-	}
+    flash_unlock();
+    for (i = 0; i < len / sizeof(uint32_t); i++) {
+	data_word = (pdata[i*4]) | (pdata[i*4+1] << 8) |
+	    (pdata[i*4+2] << 16) | (pdata[i*4+3] << 24);
+	flash_word_program(iap_info.app_address, data_word);
+	iap_info.app_address += 4;
     }
+    flash_lock();
 
-    if (iap_info.recv_pack_count == iap_info.fw_pack_count) {
-	while (iap_info.fifo_length != HID_IAP_BUFFER_LEN) {
-	    iap_info.iap_fifo[iap_info.fifo_length++] = 0xFF;
-	}
-	fw_complete = 1;
-    }
-
-    /* buffer full */
-    if(iap_info.fifo_length == HID_IAP_BUFFER_LEN)
-    {
-	flash_unlock();
-	pbuf = (uint32_t *)iap_info.iap_fifo;
-	for(i_index = 0; i_index < iap_info.fifo_length / sizeof(uint32_t); i_index ++)
-	{
-	    flash_word_program(iap_info.app_address, *pbuf++);
-	    iap_info.app_address += 4;
-	}
-	flash_lock();
-
-	iap_info.fifo_length = 0;
-    }
-
-    if (fw_complete) {
+    if (iap_info.recv_pack_count == iap_info.fw_pack_count)
 	iap_finish();
-    }
 
     return IAP_SUCCESS;
 }
