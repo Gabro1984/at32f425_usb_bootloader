@@ -192,7 +192,6 @@ void iap_init(void)
   iap_info.ram_flag_address = RAM_UPGRADE_FLAG_ADDRESS;
 
   iap_info.state = IAP_STS_IDLE;
-  iap_info.fifo_length = 0;
   iap_info.fw_crc32 = 0;
   iap_info.fw_pack_count = 0;
   iap_info.recv_pack_count = 0;

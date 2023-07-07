@@ -93,11 +93,9 @@ typedef enum
 
 typedef struct
 {
-  uint8_t iap_fifo[HID_IAP_BUFFER_LEN];
   uint8_t iap_rx[USBD_HIDIAP_OUT_MAXPACKET_SIZE];
   uint8_t iap_tx[USBD_HIDIAP_IN_MAXPACKET_SIZE];
 
-  uint32_t fifo_length;
   uint32_t tx_length;
 
   uint32_t app_address;
